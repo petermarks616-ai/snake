@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>贪吃蛇小游戏</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
+</head>
+<body>
+    <!-- 主菜单页面 -->
+    <div id="menu-page" class="page active">
+        <div class="container">
+            <h1 class="game-title">
+                <i class="fas fa-snake"></i> 贪吃蛇
+            </h1>
+            
+            <div class="game-description">
+                <p>控制蛇吃苹果来增长长度和得分</p>
+                <p>每吃5个苹果会出现一个限时大苹果（10分）</p>
+                <p>避免撞到墙壁或自己的身体！</p>
+            </div>
+            
+            <div class="buttons-container">
+                <button id="start-game" class="btn btn-primary">
+                    <i class="fas fa-play"></i> 开始游戏
+                </button>
+                <button id="show-scores" class="btn btn-secondary">
+                    <i class="fas fa-trophy"></i> 最高纪录
+                </button>
+            </div>
+            
+            <div class="game-instructions">
+                <h3><i class="fas fa-info-circle"></i> 游戏说明</h3>
+                <ul>
+                    <li>使用键盘方向键或屏幕按钮控制蛇的移动</li>
+                    <li>每个小苹果：<span class="score-point">+1分</span></li>
+                    <li>每5个苹果后出现的大苹果：<span class="score-point">+10分</span>（限时）</li>
+                    <li>蛇碰到自己身体或墙壁游戏结束</li>
+                </ul>
+            </div>
+            
+            <div class="footer">
+                <p>专为移动设备设计 | 使用GitHub部署</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏页面 -->
+    <div id="game-page" class="page">
+        <div class="game-header">
+            <div class="score-display">
+                <span class="score-label">分数:</span>
+                <span id="current-score">0</span>
+            </div>
+            <div class="apple-counter">
+                <span class="apple-label">苹果:</span>
+                <span id="apple-count">0</span>
+                <span class="counter-info">/5</span>
+            </div>
+            <div class="game-timer">
+                <i class="fas fa-clock"></i>
+                <span id="game-time">0</span>秒
+            </div>
+            <button id="back-to-menu" class="btn-small">
+                <i class="fas fa-home"></i> 菜单
+            </button>
+        </div>
+        
+        <div class="game-container">
+            <canvas id="game-canvas" width="300" height="400"></canvas>
+            
+            <div id="big-apple-indicator" class="big-apple-indicator hidden">
+                <i class="fas fa-apple-alt"></i> 大苹果出现！
+            </div>
+            
+            <div id="game-over" class="game-over hidden">
+                <div class="game-over-content">
+                    <h2><i class="fas fa-gamepad"></i> 游戏结束</h2>
+                    <div class="final-score">
+                        本次分数: <span id="final-score">0</span>
+                    </div>
+                    <div class="final-apples">
+                        吃到的苹果: <span id="final-apples">0</span>
+                    </div>
+                    <div class="game-time">
+                        游戏时间: <span id="final-time">0</span>秒
+                    </div>
+                    <button id="return-to-menu" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> 返回菜单
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <div class="control-row">
+                <button id="up-btn" class="control-btn">
+                    <i class="fas fa-arrow-up"></i>
+                </button>
+            </div>
+            <div class="control-row">
+                <button id="left-btn" class="control-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="space"></div>
+                <button id="right-btn" class="control-btn">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="control-row">
+                <button id="down-btn" class="control-btn">
+                    <i class="fas fa-arrow-down"></i>
+                </button>
+            </div>
+            
+            <div class="mobile-tip">
+                <i class="fas fa-mobile-alt"></i> 点击按钮或使用键盘方向键控制
+            </div>
+        </div>
+    </div>
+    
+    <!-- 最高纪录弹窗 -->
+    <div id="high-scores-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-crown"></i> 最高纪录</h2>
+                <button id="close-scores" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="scores-list">
+                <div class="score-item header">
+                    <div class="rank">排名</div>
+                    <div class="score-value">分数</div>
+                    <div class="score-apples">苹果</div>
+                    <div class="score-date">日期</div>
+                </div>
+                <div id="scores-container">
+                    <!-- 分数会通过JS动态添加 -->
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="close-scores-btn" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 返回
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 大苹果倒计时指示器 -->
+    <div id="big-apple-timer" class="big-apple-timer hidden">
+        <div class="timer-bar">
+            <div id="timer-progress" class="timer-progress"></div>
+        </div>
+        <div class="timer-text">
+            <i class="fas fa-apple-alt"></i> 大苹果剩余时间: <span id="big-apple-time">10</span>秒
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
