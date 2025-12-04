@@ -5,8 +5,8 @@ let tileCount = 20;
 let snake = [];
 let apple = {x: 10, y: 10};
 let bigApple = null;
-let direction = {x: 0, y: 0};
-let nextDirection = {x: 0, y: 0};
+let direction = {x: 1, y: 0}; // 初始方向向右
+let nextDirection = {x: 1, y: 0};
 let score = 0;
 let appleCount = 0;
 let gameSpeed = 8; // 帧数
@@ -89,6 +89,11 @@ function resizeCanvas() {
     
     // 重新计算网格大小
     gridSize = canvas.width / tileCount;
+    
+    // 如果游戏正在运行，重新绘制
+    if (gameRunning) {
+        draw();
+    }
 }
 
 // 加载最高分
@@ -186,13 +191,16 @@ function startGame() {
     
     // 开始游戏循环
     gameRunning = true;
+    lastRenderTime = 0;
     gameLoop = requestAnimationFrame(update);
 }
 
 // 返回菜单
 function goToMenu() {
     gameRunning = false;
-    cancelAnimationFrame(gameLoop);
+    if (gameLoop) {
+        cancelAnimationFrame(gameLoop);
+    }
     
     // 隐藏游戏结束弹窗
     document.getElementById('game-over').classList.add('hidden');
@@ -311,6 +319,11 @@ function updateBigAppleTimer(deltaTime) {
 function update(currentTime) {
     if (!gameRunning) return;
     
+    // 如果是第一次调用，初始化lastRenderTime
+    if (lastRenderTime === 0) {
+        lastRenderTime = currentTime;
+    }
+    
     // 计算时间增量
     const deltaTime = (currentTime - lastRenderTime) / 1000;
     lastRenderTime = currentTime;
@@ -364,7 +377,7 @@ function update(currentTime) {
         apple = getRandomApplePosition();
         
         // 每吃5个苹果，生成一个大苹果
-        if (appleCount % 5 === 0) {
+        if (appleCount % 5 === 0 && appleCount > 0) {
             spawnBigApple();
         }
     } 
@@ -409,7 +422,7 @@ function draw() {
         // 蛇头
         if (index === 0) {
             ctx.fillStyle = '#4ecca3';
-            ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
             
             // 蛇头眼睛
             ctx.fillStyle = '#000';
@@ -419,25 +432,25 @@ function draw() {
             let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
             
             if (direction.x === 1) { // 向右
-                leftEyeX = segment.x * gridSize + gridSize - eyeSize;
+                leftEyeX = segment.x * gridSize + gridSize - eyeSize - 2;
                 leftEyeY = segment.y * gridSize + eyeSize * 2;
-                rightEyeX = segment.x * gridSize + gridSize - eyeSize;
+                rightEyeX = segment.x * gridSize + gridSize - eyeSize - 2;
                 rightEyeY = segment.y * gridSize + gridSize - eyeSize * 3;
             } else if (direction.x === -1) { // 向左
-                leftEyeX = segment.x * gridSize + eyeSize;
+                leftEyeX = segment.x * gridSize + eyeSize + 2;
                 leftEyeY = segment.y * gridSize + eyeSize * 2;
-                rightEyeX = segment.x * gridSize + eyeSize;
+                rightEyeX = segment.x * gridSize + eyeSize + 2;
                 rightEyeY = segment.y * gridSize + gridSize - eyeSize * 3;
             } else if (direction.y === 1) { // 向下
                 leftEyeX = segment.x * gridSize + eyeSize * 2;
-                leftEyeY = segment.y * gridSize + gridSize - eyeSize;
+                leftEyeY = segment.y * gridSize + gridSize - eyeSize - 2;
                 rightEyeX = segment.x * gridSize + gridSize - eyeSize * 3;
-                rightEyeY = segment.y * gridSize + gridSize - eyeSize;
+                rightEyeY = segment.y * gridSize + gridSize - eyeSize - 2;
             } else { // 向上
                 leftEyeX = segment.x * gridSize + eyeSize * 2;
-                leftEyeY = segment.y * gridSize + eyeSize;
+                leftEyeY = segment.y * gridSize + eyeSize + 2;
                 rightEyeX = segment.x * gridSize + gridSize - eyeSize * 3;
-                rightEyeY = segment.y * gridSize + eyeSize;
+                rightEyeY = segment.y * gridSize + eyeSize + 2;
             }
             
             ctx.fillRect(leftEyeX, leftEyeY, eyeSize, eyeSize);
@@ -446,7 +459,7 @@ function draw() {
         // 蛇身
         else {
             ctx.fillStyle = index % 2 === 0 ? '#4ecca3' : '#00adb5';
-            ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+            ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
             
             // 蛇身内部图案
             ctx.fillStyle = '#0f3460';
@@ -466,7 +479,7 @@ function draw() {
     ctx.arc(
         apple.x * gridSize + gridSize / 2,
         apple.y * gridSize + gridSize / 2,
-        gridSize / 2,
+        gridSize / 2 - 1,
         0,
         Math.PI * 2
     );
@@ -488,7 +501,7 @@ function draw() {
         ctx.arc(
             bigApple.x * gridSize + gridSize / 2,
             bigApple.y * gridSize + gridSize / 2,
-            gridSize / 1.5,
+            gridSize / 1.5 - 1,
             0,
             Math.PI * 2
         );
@@ -543,7 +556,9 @@ function drawGrid() {
 // 游戏结束
 function gameOver() {
     gameRunning = false;
-    cancelAnimationFrame(gameLoop);
+    if (gameLoop) {
+        cancelAnimationFrame(gameLoop);
+    }
     
     // 更新最终分数显示
     finalScoreEl.textContent = score;
